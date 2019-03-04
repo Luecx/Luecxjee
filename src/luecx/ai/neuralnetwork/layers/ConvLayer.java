@@ -76,6 +76,14 @@ public class ConvLayer extends Layer {
         return filter[index];
     }
 
+    public double[] getBias(){
+        return bias;
+    }
+
+    public void setBias(double[] bias){
+        this.bias = bias;
+    }
+
     @Override
     protected void on_build() throws Exception {
         if (Double.isNaN(lowerWeightsRange) || Double.isNaN(upperWeigthsRange)) {
@@ -221,7 +229,7 @@ public class ConvLayer extends Layer {
 
     @Override
     public void update_weights(double eta) {
-        double e= eta /(getOUTPUT_HEIGHT() * getOUTPUT_WIDTH());
+        double e= eta;
         for (int output_d = 0; output_d < this.OUTPUT_DEPTH; output_d++) {
             for (int output_w = 0; output_w < this.OUTPUT_WIDTH; output_w++) {
                 for (int output_h = 0; output_h < this.OUTPUT_HEIGHT; output_h++) {

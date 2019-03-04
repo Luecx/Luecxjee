@@ -25,7 +25,7 @@ public class Neat {
 
 
     private double NODE_MUTATION_RATE = 0.04;
-    private double CONNECTION_MUTATION_RATE = 0.1;
+    private double CONNECTION_MUTATION_RATE = 0.2;
     private double CONNECTION_ENABLE_DISABLE_RATE = 0.05;
     private double CONNECTION_ENABLE_DISABLE_RESET_RATE = 0.25;
 

@@ -12,6 +12,7 @@ import luecx.data.parser.parser.Parser;
 import luecx.data.parser.parser.ParserTools;
 import luecx.data.parser.tree.Attribute;
 import luecx.data.parser.tree.Node;
+import luecx.visual.basic.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,7 +99,7 @@ public class Network {
         this.updateWeights(eta);
     }
 
-    public void train(TrainSet trainSet, int epochs, int batch_size, double fall_of) {
+    public double train(TrainSet trainSet, int epochs, int batch_size, double fall_of) {
         double e = 0.1;
 
         long time = System.currentTimeMillis();
@@ -118,22 +119,48 @@ public class Network {
         }
 
         System.out.println("Passed Time: " + (System.currentTimeMillis() - time) / 1000d + "s");
-
+        return e;
     }
 
-    public void train(TrainSet trainSet, int batch_size, double eta) {
+    public double train(TrainSet trainSet, int batch_size, double eta) {
         ArrayList<TrainSet> trainSets = trainSet.shuffledParts(batch_size);
         int index = 0;
+        double e = 0.1;
         for (TrainSet t : trainSets) {
             index++;
             for (int k = 0; k < t.size(); k++) {
                 train(t.getInput(k), t.getOutput(k), eta);
             }
-            //System.out.println(index + "     " + overall_error(t));
+            System.out.println(index + "     " + (e = overall_error(t)));
         }
-
+        return e;
     }
 
+    public double validate_binary(TrainSet trainSet){
+        if(this.getOUTPUT_DEPTH() * this.getOUTPUT_WIDTH() != 1){
+            System.err.println("Binary validation is only available for 1 dimensional outputs");
+        }
+        int correct = 0;
+        for(int i = 0; i < trainSet.size(); i++){
+            this.calculate(trainSet.getInput(i));
+
+
+            if(this.getOUTPUT_HEIGHT() == 1){
+                if(this.getOutput()[0][0][0] > 0.5 && trainSet.getOutput(i)[0][0][0] > 0.5 ||
+                        this.getOutput()[0][0][0] < 0.5 && trainSet.getOutput(i)[0][0][0] < 0.5){
+                    correct ++;
+                }
+            }
+            else{
+                if(ArrayTools.indexOfHighestValue(this.getOutput()[0][0]) == ArrayTools.indexOfHighestValue(trainSet.getOutput(i)[0][0])){
+                    correct++;
+                }
+            }
+
+            ProgressBar.update("binary validation", i+1, trainSet.size(), 50, (""+correct / (double) (i + 1) +"      ").substring(0,5));
+        }
+        return correct / (double)trainSet.size();
+    }
 
     public void save_network(String file) {
         Parser p = new Parser();
@@ -166,7 +193,20 @@ public class Network {
                 }
                 layer_node.addChild(weights);
             } else if (layer instanceof ConvLayer) {
-                //coming soon
+                layer_node = new Node("ConvLayer " + index);
+                layer_node.addAttribute("channels", ((ConvLayer) layer).getChannel_amount()+"");
+                layer_node.addAttribute("filter_size", ((ConvLayer) layer).getFilter_size()+"");
+                layer_node.addAttribute("input_depth", ((ConvLayer) layer).getINPUT_DEPTH()+"");
+                layer_node.addAttribute("filter_stride", ((ConvLayer) layer).getFilter_Stride()+"");
+                layer_node.addAttribute("padding", ((ConvLayer) layer).getPadding()+"");
+                layer_node.addAttribute("bias", Arrays.toString(((ConvLayer) layer).getBias()));
+                layer_node.addAttribute("activation_function", ((ConvLayer) layer).getActivationFunction().getClass().getSimpleName());
+
+                Node filter = new Node("filter");
+                for(int i = 0; i < ((ConvLayer) layer).getChannel_amount(); i++){
+                    filter.addAttribute("" + i, Arrays.toString(ArrayTools.convertComplexToFlatArray(((ConvLayer) layer).getFilter(i))));
+                }
+                layer_node.addChild(filter);
             }
 
             root.addChild(layer_node);
@@ -226,6 +266,45 @@ public class Network {
                     l = new TransformationLayer();
                 } else if (name.equals("PoolingLayer")) {
                     l = new PoolingLayer(Integer.parseInt(n.getAttribute("pooling_factor").getValue()));
+                } else if (name.equals("ConvLayer")) {
+                    l = new ConvLayer(
+                            Integer.parseInt(n.getAttribute("channels").getValue()),
+                            Integer.parseInt(n.getAttribute("filter_size").getValue()),
+                            Integer.parseInt(n.getAttribute("filter_stride").getValue()),
+                            Integer.parseInt(n.getAttribute("padding").getValue()));
+
+                    switch (n.getAttribute("activation_function").getValue()) {
+                        case "Sigmoid":
+                            ((ConvLayer) l).setActivationFunction(new Sigmoid());
+                            break;
+                        case "ReLU":
+                            ((ConvLayer) l).setActivationFunction(new ReLU());
+                            break;
+                        case "LeakyReLU":
+                            ((ConvLayer) l).setActivationFunction(new LeakyReLU());
+                            break;
+                        case "Softmax":
+                            ((ConvLayer) l).setActivationFunction(new Softmax());
+                            break;
+                        case "Linear":
+                            ((ConvLayer) l).setActivationFunction(new Linear());
+                            break;
+                        case "TanH":
+                            ((ConvLayer) l).setActivationFunction(new TanH());
+                            break;
+                    }
+
+                    Node w = n.getChild("filter");
+                    for(int i = 0; i < ((ConvLayer) l).getChannel_amount(); i++){
+                        ((ConvLayer) l).setFilter(i,
+                            ArrayTools.convertFlatToComplexArray(
+                                    ParserTools.parseDoubleArray(w.getAttribute(i+"").getValue()),
+                                    Integer.parseInt(n.getAttribute("input_depth").getValue()),
+                                    Integer.parseInt(n.getAttribute("filter_size").getValue()),
+                                    Integer.parseInt(n.getAttribute("filter_size").getValue())),0
+                                );
+                    }
+                    ((ConvLayer) l).setBias(ParserTools.parseDoubleArray(n.getAttribute("bias").getValue()));
                 }
                 builder.addLayer(l);
             }
@@ -307,53 +386,20 @@ public class Network {
 //        }
 
 
-        DenseLayer denseLayer;
-        NetworkBuilder builder = new NetworkBuilder(1, 1, 3);
-        builder.addLayer(denseLayer = new DenseLayer(3)
-                .setActivationFunction(new ReLU())
-                .setWeights(new double[][]{
-                        {0.1, 0.3, 0.4},
-                        {0.2, 0.2, 0.3},
-                        {0.3, 0.7, 0.9}})
-                .setBias(new double[]{1, 1, 1}));
-        builder.addLayer(new DenseLayer(3)
-                .setActivationFunction(new Sigmoid())
-                .setWeights(new double[][]{
-                        {0.2, 0.3, 0.6},
-                        {0.3, 0.5, 0.4},
-                        {0.5, 0.7, 0.8}})
-                .setBias(new double[]{1, 1, 1}));
-        builder.addLayer(new DenseLayer(3)
-                .setActivationFunction(new Softmax())
-                .setWeights(new double[][]{
-                        {0.1, 0.3, 0.5},
-                        {0.4, 0.7, 0.2},
-                        {0.8, 0.2, 0.9}})
-                .setBias(new double[]{1, 1, 1}));
-
+        NetworkBuilder builder = new NetworkBuilder(3, 7, 7);
+        builder.addLayer(new ConvLayer(3,3,1,0));
+        builder.addLayer(new ConvLayer(3,3,1,0));
+        builder.addLayer(new TransformationLayer());
+        builder.addLayer(new DenseLayer(10));
         Network network = builder.buildNetwork();
-        network.setErrorFunction(new CrossEntropy());
+        network.setErrorFunction(new MSE());
 
         network.save_network("res/net1");
-
         Network network1 = Network.load_network("res/net1");
-        network1.save_network("res/net2");
-//
-//        double[][][] in = ArrayTools.createComplexFlatArray(0.1, 0.2, 0.7);
-//        double[][][] out = ArrayTools.createComplexFlatArray(1, 0, 0);
-//
-//        for (int i = 0; i < 1000; i++) {
-//            network.train(in, out, 0.003);
-//            double e = network.overall_error(in, out);
-//            if (Double.isNaN(e)) {
-//                network.analyseNetwork();
-//                break;
-//            } else {
-//                System.out.println(e);
-//            }
-//        }
-//
-//        network.analyseNetwork();
+
+        double[][][] in = ArrayTools.createRandomArray(3,7,7,0,1);
+        Layer.printArray(network.calculate(in));
+        Layer.printArray(network1.calculate(in));
     }
 
     public void analyseNetwork() {
@@ -397,13 +443,13 @@ public class Network {
             else if (cur instanceof DeconvLayer) {
                 params += ((DeconvLayer) cur).getFilter_size() * ((DeconvLayer) cur).getFilter_size() * cur.getINPUT_DEPTH() *
                         cur.getOUTPUT_DEPTH();
-                connections += cur.getOUTPUT_DEPTH() * cur.getOUTPUT_HEIGHT() * cur.getOUTPUT_WIDTH() * cur.getINPUT_DEPTH() *
+                connections += cur.getINPUT_DEPTH() * cur.getINPUT_HEIGHT() * cur.getINPUT_WIDTH() * cur.getOUTPUT_DEPTH() *
                         ((DeconvLayer) cur).getFilter_size() * ((DeconvLayer) cur).getFilter_size();
             }
             else{
                 connections += cur.getINPUT_DEPTH() * cur.getINPUT_WIDTH() * cur.getINPUT_HEIGHT();
             }
-            System.out.format("%-40s %-30s %-30s\n", cur.getClass().getSimpleName() +
+            System.out.format("%-15s %-25s %-30s %-30s\n", cur.getClass().getSimpleName(),
                     " -> [" + cur.getOUTPUT_DEPTH() +
                     ", " + cur.getOUTPUT_WIDTH() +
                     ", " + cur.getOUTPUT_HEIGHT() +
@@ -415,6 +461,23 @@ public class Network {
         }
         System.out.println("===========================================================================================");
         System.out.println("Tunable Parameters: " + totalparams);
+        System.out.println("");
+
+    }
+
+    public void speed_check(int samples){
+        double[][][] in = ArrayTools.createRandomArray(getINPUT_DEPTH(),getINPUT_WIDTH(), getINPUT_HEIGHT(),0,1);
+        double[][][] out = ArrayTools.createRandomArray(getOUTPUT_DEPTH(),getOUTPUT_WIDTH(), getOUTPUT_HEIGHT(),0,1);
+
+        long time = System.nanoTime();
+        for(int i = 0; i < samples; i++){
+            this.train(in, out, 0);
+            ProgressBar.update("speed_check:", i + 1,samples,50,  ((System.nanoTime()-time) / (Math.pow(10,6) * (i + 1))+"   ").substring(0,6) + "ms");
+        }
+        System.out.println("");
+        System.out.println("speed per sample: " + (System.nanoTime() - time) / Math.pow(10,6) / samples + " ms");        System.out.println("");
+        System.out.println("");
+
     }
 
     /**

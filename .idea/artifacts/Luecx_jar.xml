@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Luecx:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Luecx_jar</output-path>
+    <root id="archive" name="Luecx.jar">
+      <element id="module-output" name="Luecx" />
+    </root>
+  </artifact>
+</component>

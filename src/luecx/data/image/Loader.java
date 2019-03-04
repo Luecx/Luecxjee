@@ -43,7 +43,7 @@ public class Loader {
     }
 
     public static BufferedImage convertToBufferedImage(double[][][] data) {
-        ArrayTools.rescale_values(data);
+        ArrayTools.normaliseValues(data);
 
         BufferedImage image = new BufferedImage(data[0].length, data[0][0].length, BufferedImage.TYPE_INT_RGB);
         for (int x = 0; x < data[0].length; x++) {
@@ -90,8 +90,7 @@ public class Loader {
     }
 
     public static void writeImage(String name, BufferedImage image) {
-        String path = "res/" + name + ".png ";
-        File ImageFile = new File(path);
+        File ImageFile = new File(name);
         ImageFile.mkdirs();
         try {
             ImageIO.write(image, "png", ImageFile);

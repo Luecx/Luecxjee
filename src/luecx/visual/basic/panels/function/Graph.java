@@ -1,4 +1,4 @@
-package luecx.visual.basic.panels;
+package luecx.visual.basic.panels.function;
 
 import luecx.visual.basic.framework.Panel;
 

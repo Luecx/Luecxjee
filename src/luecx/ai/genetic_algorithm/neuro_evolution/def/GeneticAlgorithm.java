@@ -33,7 +33,6 @@ public class GeneticAlgorithm {
 
     public static <T extends GeneticClient> void printClients(ArrayList<T> clients){
         int index = 0;
-        double[] in = new double[]{0.6,0.4,0.6,0.1};
         for(T t:clients){
             index++;
             System.out.format("index %3s     score %-20s alive: %-10s \n", index, t.getScore(), t.getNetwork());

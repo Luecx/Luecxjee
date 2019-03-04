@@ -1,4 +1,4 @@
-package luecx.data.mnist;
+import luecx.data.mnist_streamer.MnistSet;
 
 import java.io.*;
 import java.util.ArrayList;

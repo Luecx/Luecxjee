@@ -33,7 +33,7 @@ public class ArrayTools {
         return out;
     }
 
-    public static double[][][] rescale_values(double[][][] out){
+    public static double[][][] normaliseValues(double[][][] out){
         double min = 10000;
         double max = -10000;
         for(int i = 0; i < out.length; i++) {
@@ -75,6 +75,30 @@ public class ArrayTools {
 
     public static double[] convertFlattenedArray(double[][][] array) {
         return array[0][0];
+    }
+
+    public static double[][][] convertFlatToComplexArray(double[] array, int depth, int width, int height){
+        double[][][] out = new double[depth][width][height];
+        for(int d = 0; d < depth; d++){
+            for(int w = 0; w < width; w++){
+                for(int h = 0; h < height; h++){
+                    out[d][w][h] = array[d + w * depth + h * depth * width];
+                }
+            }
+        }
+        return out;
+    }
+
+    public static double[] convertComplexToFlatArray(double[][][] array){
+        double[] out = new double[array.length * array[0].length * array[0][0].length];
+        for(int d = 0; d < array.length; d++){
+            for(int w = 0; w < array[0].length; w++){
+                for(int h = 0; h < array[0][0].length; h++){
+                    out[d + w * array.length + h * array.length * array[0].length] = array[d][w][h];
+                }
+            }
+        }
+        return out;
     }
 
     public static double[][][] createComplexFlatArray(double... input) {
@@ -224,7 +248,10 @@ public class ArrayTools {
         return max;
     }
 
+    static Random r = new Random((long)(10000000L * Math.random()));
     public static double randomValue(double lower, double upper) {
         return Math.random() * (upper - lower) + lower;
+//        double mid = lower + (upper - lower) / 2;
+//        return r.nextGaussian() * (upper - mid) + mid;
     }
 }

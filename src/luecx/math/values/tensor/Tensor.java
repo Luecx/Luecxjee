@@ -1,5 +1,7 @@
 package luecx.math.values.tensor;
 
+import java.util.Arrays;
+
 public class Tensor {
 
     protected double[] values;
@@ -17,7 +19,12 @@ public class Tensor {
         values = new double[entries];
     }
 
-    protected double[] getValues() {
+    public Tensor(Tensor t){
+        this.values = Arrays.copyOf(t.values, t.values.length);
+        this.dimensions = Arrays.copyOf(t.dimensions, t.dimensions.length);
+    }
+
+    public double[] getValues() {
         return values;
     }
 
@@ -33,15 +40,15 @@ public class Tensor {
         this.dimensions = dimensions;
     }
 
-    public void mul(Tensor right, Tensor target){
+    public Tensor mul(Tensor right, Tensor target){
 
-        if(dimensions.length > 2 || right.dimensions.length > 2) return;
+        if(dimensions.length > 2 || right.dimensions.length > 2) return this;
         double v = 0;
 
         if(right.dimensions.length == 1){
             if(this.dimensions.length == 1){
                 target.values[0] = values[0] * right.values[0];
-                return;
+                return this;
             }else{
                 for(int y = 0; y < target.dimensions[0]; y++){
                     v = 0;
@@ -70,34 +77,43 @@ public class Tensor {
                 }
             }
         }
+        return this;
     }
 
     public int dim(){
         return dimensions.length;
     }
 
-    public void add(Tensor t){
+    public Tensor add(Tensor t){
         for(int i = 0; i < Math.min(values.length, t.values.length); i++){
             values[i] += t.values[i];
         }
+        return this;
     }
 
-    public void hadamard(Tensor t){
+    public Tensor scale(double scalar){
+        for(int i = 0; i < values.length; i++){
+            values[i] *= scalar;
+        }
+        return this;
+    }
+
+    public Tensor hadamard(Tensor t){
         for(int i = 0; i < Math.min(values.length, t.values.length); i++){
             values[i] *= t.values[i];
-        }
+        }return this;
     }
 
-    public void sub(Tensor t){
+    public Tensor sub(Tensor t){
         for(int i = 0; i < Math.min(values.length, t.values.length); i++){
             values[i] -= t.values[i];
-        }
+        }return this;
     }
 
-    public void negate(){
+    public Tensor negate(){
         for(int i = 0; i < values.length; i++){
             values[i] =- values[i];
-        }
+        }return this;
     }
 
     public double getValue(int... position){

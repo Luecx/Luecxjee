@@ -19,7 +19,8 @@ public class CrossEntropy extends ErrorFunction {
         for (int i = 0; i < outputLayer.getOutput_values().length; i++) {
             for (int n = 0; n < outputLayer.getOutput_values()[0].length; n++) {
                 for (int j = 0; j < outputLayer.getOutput_values()[0][0].length; j++) {
-                    val += expected[i][n][j] * Math.log(outputLayer.getOutput_values()[i][n][j]) + (1 - expected[i][n][j]) * Math.log(1-outputLayer.getOutput_values()[i][n][j]) ;
+                    //val += expected[i][n][j] * Math.log(outputLayer.getOutput_values()[i][n][j]) + (1 - expected[i][n][j]) * Math.log(1-outputLayer.getOutput_values()[i][n][j]) ;
+                    val += expected[i][n][j] * Math.log(outputLayer.getOutput_values()[i][n][j]);
                     c++;
                 }
             }
@@ -33,8 +34,10 @@ public class CrossEntropy extends ErrorFunction {
         for (int i = 0; i < outputLayer.getOutput_values().length; i++) {
             for (int n = 0; n < outputLayer.getOutput_values()[0].length; n++) {
                 for (int j = 0; j < outputLayer.getOutput_values()[0][0].length; j++) {
-                    outputLayer.getOutput_error_values()[i][n][j] =
-                            (expected[i][n][j] - outputLayer.getOutput_values()[i][n][j]);
+                    System.out.println(- outputLayer.getPrev_layer().getOutput_derivative_values()[i][n][j] *
+                            (expected[i][n][j] / outputLayer.getOutput_values()[i][n][j]));
+                    outputLayer.getOutput_error_values()[i][n][j] = - outputLayer.getPrev_layer().getOutput_derivative_values()[i][n][j] *
+                            (expected[i][n][j] / outputLayer.getOutput_values()[i][n][j]);
 
                 }
             }

@@ -2,10 +2,7 @@ package luecx.ai.neuralnetwork;
 
 
 import luecx.ai.neuralnetwork.activation.ReLU;
-import luecx.ai.neuralnetwork.layers.ConvLayer;
-import luecx.ai.neuralnetwork.layers.InputLayer;
-import luecx.ai.neuralnetwork.layers.Layer;
-import luecx.ai.neuralnetwork.layers.OutputLayer;
+import luecx.ai.neuralnetwork.layers.*;
 import luecx.ai.neuralnetwork.tools.ArrayTools;
 
 import javax.imageio.ImageIO;
@@ -22,7 +19,6 @@ import java.util.ArrayList;
 public class NetworkBuilder {
 
     InputLayer inputLayer;
-
     ArrayList<Layer> layers = new ArrayList<>();
 
     public NetworkBuilder(int input_depth, int input_width, int input_height) {
@@ -36,6 +32,23 @@ public class NetworkBuilder {
     public NetworkBuilder addLayer(Layer layer) {
         layers.add(layer);
         return this;
+    }
+
+    public void overview(){
+
+        layers.add(0, inputLayer);
+        for(Layer cur:layers){
+            System.out.println("===========================================================================================");
+            System.out.format("%-15s %-30s\n", cur.getClass().getSimpleName(),
+                    " -> [" + cur.getOUTPUT_DEPTH() +
+                    ", " + cur.getOUTPUT_WIDTH() +
+                    ", " + cur.getOUTPUT_HEIGHT() +
+                    "]");
+        }
+        layers.remove(inputLayer);
+
+        System.out.println("===========================================================================================");
+        System.out.println("");
     }
 
     public Network buildNetwork() {

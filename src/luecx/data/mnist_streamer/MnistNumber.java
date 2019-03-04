@@ -1,4 +1,4 @@
-package luecx.data.mnist;
+package luecx.data.mnist_streamer;
 
 import java.io.DataInputStream;
 import java.io.IOException;

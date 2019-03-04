@@ -4,9 +4,8 @@ package luecx.data.mnist;
 import luecx.ai.neuralnetwork.Network;
 import luecx.ai.neuralnetwork.NetworkBuilder;
 import luecx.ai.neuralnetwork.activation.ReLU;
-import luecx.ai.neuralnetwork.activation.Softmax;
+import luecx.ai.neuralnetwork.activation.Sigmoid;
 import luecx.ai.neuralnetwork.data.TrainSet;
-import luecx.ai.neuralnetwork.error.CrossEntropy;
 import luecx.ai.neuralnetwork.error.MSE;
 import luecx.ai.neuralnetwork.layers.ConvLayer;
 import luecx.ai.neuralnetwork.layers.DenseLayer;
@@ -22,88 +21,114 @@ import java.io.File;
 public class Mnist {
 
 
-    public static void main(String[] args) {
-
-//        NetworkBuilder builder = new NetworkBuilder(1,10,10);
-//        builder.addLayer(new TransformationLayer());
-//        builder.addLayer(new DenseLayer(30).setActivationFunction(new LeakyReLU()));
-//        builder.addLayer(new DenseLayer(10).setActivationFunction(new LeakyReLU()));
-//
-//        Network network = builder.buildNetwork();
-//
-//        Layer.printArray(network.calculate(ArrayTools.createRandomArray(1,10,10,0,1)));
-//        network.analyseNetwork();
-//
-//        double[][][] in = ArrayTools.createRandomArray(1,10,10,0,1);
-//        double[][][] out = ArrayTools.createRandomArray(1,1,10,0,1);
-//
-//        for(int i = 0; i < 100; i++){
-//            network.train(in,out,0.9);
-//        }
-//
-//        System.out.println("#################################################");
-//        Layer.printArray(network.calculate(in));
-//        Layer.printArray(out);
-
-//        NetworkBuilder builder = new NetworkBuilder(1, 28, 28);
-//        builder.addLayer(new TransformationLayer());
-//        builder.addLayer(new DenseLayer(75)
-//                .setActivationFunction(new Sigmoid()));
-//        builder.addLayer(new DenseLayer(30)
-//                .setActivationFunction(new Sigmoid()));
-//        builder.addLayer(new DenseLayer(10)
-//                .setActivationFunction(new Softmax())
-//        );
-//        Network network = builder.buildNetwork();
-//        network.setErrorFunction(new CrossEntropy());
-//
-//        TrainSet trainSet = createTrainSet(0,9999);
-//        trainData(network, trainSet, 50,10);
-//        testTrainSet(network, createTrainSet(10000,11999),10);
-
-
-
-        //Julian Abhari
-        //Julian Abhari
-        //Julian Abhari
-        //Julian Abheurari
-        //Julian Abhari
-        //Julian Abhari
-
-        ConvLayer conv1;
-
+    public static void main(String[] args) throws InterruptedException {
         NetworkBuilder builder = new NetworkBuilder(1, 28, 28);
-        builder.addLayer(conv1 = new ConvLayer(4, 5, 1, 0)
-                .biasRange(-0.3, 0.3)
-                .weightsRange(-0.3, 0.3)
+        builder.addLayer(new ConvLayer(5, 5, 1, 0)
+                .setActivationFunction(new ReLU()));
+        builder.addLayer(new ConvLayer(8, 5, 1, 0)
                 .setActivationFunction(new ReLU()));
         builder.addLayer(new PoolingLayer(2));
-        builder.addLayer(new ConvLayer(6, 5, 1, 0)
-                .biasRange(-0.3, 0.3)
-                .weightsRange(-0.3, 0.3)
-                .setActivationFunction(new ReLU()));
-        builder.addLayer(new ConvLayer(6, 3, 1, 0)
-                .biasRange(-0.3, 0.3)
-                .weightsRange(-0.3, 0.3)
-                .setActivationFunction(new ReLU()));
-        builder.addLayer(new PoolingLayer(2));
-        builder.addLayer(new ConvLayer(6, 3, 1, 0)
-                .biasRange(-0.3, 0.3)
-                .weightsRange(-0.3, 0.3)
-                .setActivationFunction(new ReLU()));
+        builder.addLayer(new ConvLayer(5, 5, 1, 0)
+                .setActivationFunction(new ReLU()));;
         builder.addLayer(new TransformationLayer());
-        builder.addLayer(new DenseLayer(10)
-                .setActivationFunction(new Softmax())
+        builder.addLayer(new DenseLayer(120)
+                .setActivationFunction(new ReLU())
         );
-        Network network = builder.buildNetwork();
-        network.setErrorFunction(new CrossEntropy());
+        builder.addLayer(new DenseLayer(100)
+                .setActivationFunction(new ReLU())
+        );
+        builder.addLayer(new DenseLayer(10)
+                .setActivationFunction(new Sigmoid())
+        );
+        Network net = builder.buildNetwork();
+        net.setErrorFunction(new MSE());
 
-        network.overview();
+        TrainSet train = createTrainSet(0,100);
+        net.train(train, 100,100,0.5);
 
-        TrainSet trainSet = createTrainSet(1,100);
-        network.train(trainSet,1000,10,0.01);
-        testTrainSet(network, trainSet,1);
 
+        TrainSet val = createTrainSet(100,200);
+        testTrainSet(net, val, 10);
+        net.save_network("res/mnist_network_conv2.txt");
+
+
+//        Network net = Network.load_network("res/mnist_network_conv2.txt");
+//        testTrainSet(net, createTestSet(), 1);
+//        net.calculate(createTrainSet(0,1).getInput(0));
+//
+//        new Frame(new NetworkPanel(net));
+
+    }
+
+    public static TrainSet createTrainSet(){
+        TrainSet set = new TrainSet(1, 28, 28, 1, 1, 10);
+
+        try {
+            String path = new File("").getAbsolutePath();
+
+            MnistImageFile m = new MnistImageFile(path + "/res/train-images.idx3-ubyte", "rw");
+            MnistLabelFile l = new MnistLabelFile(path + "/res/train-labels.idx1-ubyte", "rw");
+
+            int i = 0;
+            while(true) {
+                try{
+                    i++;
+                    if (i % 100 == 0) {
+                        System.out.println("prepared: " + i);
+                    }
+                    double[][] input = new double[28][28];
+                    double[] output = new double[10];
+
+                    output[l.readLabel()] = 1d;
+                    for (int j = 0; j < 28 * 28; j++) {
+                        input[j / 28][j % 28] = (double) m.read() / (double) 256;
+                    }
+                    set.addData(new double[][][]{input}, new double[][][]{{output}});
+                }catch (Exception e){
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return set;
+    }
+    public static TrainSet createTestSet(){
+        TrainSet set = new TrainSet(1, 28, 28, 1, 1, 10);
+
+        try {
+            String path = new File("").getAbsolutePath();
+
+            MnistImageFile m = new MnistImageFile(path + "/res/t10k-images.idx3-ubyte", "r");
+            MnistLabelFile l = new MnistLabelFile(path + "/res/t10k-labels.idx1-ubyte", "r");
+
+
+            int i = 0;
+            while(true) {
+                try{
+                    i++;
+                    if (i % 100 == 0) {
+                        System.out.println("prepared: " + i);
+                    }
+                    double[][] input = new double[28][28];
+                    double[] output = new double[10];
+
+                    output[l.readLabel()] = 1d;
+                    for (int j = 0; j < 28 * 28; j++) {
+                        input[j / 28][j % 28] = (double) m.read() / (double) 256;
+                    }
+
+                    set.addData(new double[][][]{input}, new double[][][]{{output}});
+                }catch (Exception e){
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return set;
     }
 
     public static TrainSet createTrainSet(int start, int end) {
@@ -115,7 +140,12 @@ public class Mnist {
             MnistImageFile m = new MnistImageFile("D:\\Informatik\\Programming\\Java Projects\\Luecxjee\\res\\trainImage.idx3-ubyte", "rw");
             MnistLabelFile l = new MnistLabelFile("D:\\Informatik\\Programming\\Java Projects\\Luecxjee\\res\\trainLabel.idx1-ubyte", "rw");
 
-            for (int i = start; i <= end; i++) {
+            for(int i = 0; i < start; i++){
+                m.next();
+                l.next();
+            }
+
+            for (int i = start; i < end; i++) {
                 if (i % 100 == 0) {
                     System.out.println("prepared: " + i);
                 }

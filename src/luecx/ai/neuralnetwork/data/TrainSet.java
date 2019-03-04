@@ -32,7 +32,8 @@ public class TrainSet {
                 in[0][0].length != INPUT_HEIGHT ||
                 expected.length != OUTPUT_DEPTH ||
                 expected[0].length != OUTPUT_WIDTH ||
-                expected[0][0].length != OUTPUT_HEIGHT) return;
+                expected[0][0].length != OUTPUT_HEIGHT) {
+            return; }
         data.add(new double[][][][]{in, expected});
     }
 
@@ -91,6 +92,7 @@ public class TrainSet {
                     ", OUTPUT_DEPTH=" + OUTPUT_DEPTH +
                     ", OUTPUT_WIDTH=" + OUTPUT_WIDTH +
                     ", OUTPUT_HEIGHT=" + OUTPUT_HEIGHT;
+            System.out.print("size: " + this.size() + "  " + data.size());
             for(double[][][][] ar:data){
                 s += "\n    " + Arrays.toString(ar[0][0][0]) + "    >    " +Arrays.toString(ar[1][0][0]);
             }

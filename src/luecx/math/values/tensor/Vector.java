@@ -9,6 +9,11 @@ public class Vector extends Matrix {
         this.m = size;
     }
 
+    public Vector(Vector o){
+        super(o);
+        this.m = o.m;
+    }
+
     public Vector(double... values){
         super(values.length, 1);
         this.setValues(values);
@@ -17,6 +22,10 @@ public class Vector extends Matrix {
 
     public double getValue(int index) {
         return super.getValue(index, 0);
+    }
+
+    public void setValue(double value, int index) {
+        super.setValue(value, index, 0);
     }
 
     public int getSize() {

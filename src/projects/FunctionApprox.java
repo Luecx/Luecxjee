@@ -3,18 +3,14 @@ package projects;
 
 import luecx.ai.neuralnetwork.Network;
 import luecx.ai.neuralnetwork.NetworkBuilder;
-import luecx.ai.neuralnetwork.activation.ReLU;
 import luecx.ai.neuralnetwork.activation.Sigmoid;
 import luecx.ai.neuralnetwork.activation.TanH;
 import luecx.ai.neuralnetwork.data.TrainSet;
-import luecx.ai.neuralnetwork.error.CrossEntropy;
 import luecx.ai.neuralnetwork.error.MSE;
 import luecx.ai.neuralnetwork.layers.DenseLayer;
 import luecx.ai.neuralnetwork.tools.ArrayTools;
 import luecx.visual.basic.framework.Frame;
-import luecx.visual.basic.panels.Graph;
-
-import java.util.Arrays;
+import luecx.visual.basic.panels.function.Graph;
 
 public class FunctionApprox {
 
@@ -34,7 +30,6 @@ public class FunctionApprox {
         n.setErrorFunction(new MSE());
 
         return n;
-
     }
 
     public static TrainSet gen_trainset(double minx, double max_x, double steps){

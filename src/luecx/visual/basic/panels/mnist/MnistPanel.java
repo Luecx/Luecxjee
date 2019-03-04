@@ -1,15 +1,18 @@
-package luecx.visual.basic.panels;
+package luecx.visual.basic.panels.mnist;
 
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import luecx.data.mnist.MnistImageFile;
+import luecx.data.mnist.MnistLabelFile;
+import luecx.visual.basic.framework.Frame;
+import luecx.visual.basic.framework.Panel;
+
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 
-public class MnistPanel extends JPanel {
+public class MnistPanel extends Panel{
 
 	/**
 	 * 
@@ -21,22 +24,25 @@ public class MnistPanel extends JPanel {
 	public int[] image_buffer = new int[784];
 	public int label_buffer = -1;
 
+
+
 	public MnistPanel(MnistImageFile image, MnistLabelFile label) {
-		super();
+		super(1000);
 		this.setImage(image);
 		this.setLabel(label);
 	}
 
 	public void nextImage() {
 		try {
-			this.image.next();
-			this.label.next();
 			
 			for(int i = 0; i < 784; i++){
 				image_buffer[i] = image.read();
 			}
 			label_buffer = label.readLabel();
-			
+
+//			this.image.next();
+//			this.label.next();
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -59,10 +65,11 @@ public class MnistPanel extends JPanel {
 	public void setLabel(MnistLabelFile label) {
 		this.label = label;
 	}
-	
-	public void paintComponent(Graphics g){
+
+	@Override
+	public void drawContent(Graphics2D g) {
 		Graphics2D g2d = (Graphics2D) g;
-		
+
 		int w = this.getWidth();
 		int h = this.getHeight();
 		g.clearRect(0, 0, w, h);
@@ -73,25 +80,28 @@ public class MnistPanel extends JPanel {
 			g2d.fillRect(x, y, w / 28 + 1, h / 28 + 1);
 		}
 		Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .3f);
-	    g2d.setComposite(comp);
-	    g2d.setPaint(Color.red);
-	    g2d.setFont(new Font("Times Roman", Font.PLAIN, h));
-	    g2d.drawString(""+label_buffer,h / 2, w /2);
+		g2d.setComposite(comp);
+		g2d.setPaint(Color.red);
+		g2d.setFont(new Font("Times Roman", Font.PLAIN, h));
+		g2d.drawString(""+label_buffer,h / 2, w /2);
 	}
-	
+
+	@Override
+	public void update() {
+		nextImage();
+	}
+
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException{
 		
 		String path = new File("").getAbsolutePath();
 
-		MnistImageFile m = new MnistImageFile(path + "/res/trainImage.idx3-ubyte", "rw");
-		MnistLabelFile l = new MnistLabelFile(path + "/res/trainLabel.idx1-ubyte", "rw");
-		
-		JFrame f = new JFrame();
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.setBounds(100, 100, 450, 300);
-		JPanel contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
+		MnistImageFile m = new MnistImageFile(path + "/res/train-images.idx3-ubyte", "rw");
+		MnistLabelFile l = new MnistLabelFile(path + "/res/train-labels.idx1-ubyte", "rw");
+
+
+		MnistPanel p = new MnistPanel(m,l);
+
+		new Frame(p);
 
 //		//Network network = new Network(10,10,10);
 //		try {

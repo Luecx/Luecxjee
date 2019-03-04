@@ -1,4 +1,6 @@
-package luecx.data.mnist;
+package luecx.data.mnist_streamer;
+
+import luecx.data.mnist_streamer.MnistNumber;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -6,7 +8,7 @@ import java.util.List;
 
 public class MnistSet {
     List<MnistNumber> set;
-    MnistSet(File imageFile, File labelFile ){
+    public MnistSet(File imageFile, File labelFile){
         DataInputStream imageStream ;
         DataInputStream labelStream ;
         try {

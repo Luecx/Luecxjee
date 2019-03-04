@@ -5,6 +5,12 @@ public class Matrix extends Tensor {
     protected int m;
     protected int n;
 
+    public Matrix(Matrix o){
+        super(o);
+        this.m = o.m;
+        this.n = o.n;
+    }
+
     public Matrix(int m, int n) {
         super(m, n);
         this.m = m;
@@ -12,13 +18,14 @@ public class Matrix extends Tensor {
     }
 
     @Override
-    public void mul(Tensor right, Tensor target) {
+    public Tensor mul(Tensor right, Tensor target) {
         if(right instanceof Matrix){
             mul((Matrix)right, (Matrix)target);
         }
+        return this;
     }
 
-    public void mul(Matrix right, Matrix target) {
+    public Matrix mul(Matrix right, Matrix target) {
         double v = 0;
         for (int x = 0; x < target.n; x++) {
             for (int y = 0; y < target.m; y++) {
@@ -29,6 +36,7 @@ public class Matrix extends Tensor {
                 target.setValue(v, y, x);
             }
         }
+        return this;
     }
 
     public void identity(){

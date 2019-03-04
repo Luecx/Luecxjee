@@ -42,9 +42,18 @@ public abstract class Panel extends JPanel{
 
     }
 
+
     @Override
     protected void paintComponent(Graphics g) {
         drawContent((Graphics2D)g);
+    }
+
+    @Override
+    public void repaint() {
+        super.repaint();
+        if(this.getGraphics() != null){
+            this.paintComponent(this.getGraphics());
+        }
     }
 
     protected void centerString(Graphics g, String s, int x, int y, Font font){
